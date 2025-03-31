@@ -1,0 +1,74 @@
+name: Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'gradle'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build APK
+        run: |
+          ./gradlew assembleNormalRelease
+          ./gradlew assemblePythonRelease
+
+      - name: Check Signing Configuration
+        id: check_signing
+        run: |
+          if [[ -n "${{ secrets.SIGNING_KEY }}" && -n "${{ secrets.KEY_ALIAS }}" && -n "${{ secrets.KEY_STORE_PASSWORD }}" && -n "${{ secrets.KEY_PASSWORD }}" ]]; then
+            echo "signing_enabled=true" >> $GITHUB_OUTPUT
+          else
+            echo "signing_enabled=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Sign APK
+        if: steps.check_signing.outputs.signing_enabled == 'true'
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: app/build/outputs/apk/normal/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Sign Python APK
+        if: steps.check_signing.outputs.signing_enabled == 'true'
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: app/build/outputs/apk/python/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            ${{ steps.check_signing.outputs.signing_enabled == 'true' && 'app/build/outputs/apk/normal/release/*-signed.apk' || 'app/build/outputs/apk/normal/release/*.apk' }}
+            ${{ steps.check_signing.outputs.signing_enabled == 'true' && 'app/build/outputs/apk/python/release/*-signed.apk' || 'app/build/outputs/apk/python/release/*.apk' }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
