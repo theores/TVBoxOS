@@ -23,10 +23,10 @@ jobs:
       - name: Set up Android SDK
         run: |
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
-          mkdir -p $ANDROID_HOME/cmdline-tools/tools
+          mkdir -p $ANDROID_HOME/cmdline-tools/latest
           unzip -q commandlinetools-linux-10406996_latest.zip -d /tmp
-          mv /tmp/cmdline-tools/* $ANDROID_HOME/cmdline-tools/tools/
-          export PATH=$ANDROID_HOME/cmdline-tools/tools/bin:$PATH
+          mv /tmp/cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest/
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           sdkmanager --install "platforms;android-33" "build-tools;33.0.0" "platform-tools" "extras;android;m2repository" "extras;google;m2repository"
           yes | sdkmanager --licenses
 
