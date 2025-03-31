@@ -24,8 +24,9 @@ jobs:
         run: |
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
           unzip -q commandlinetools-linux-10406996_latest.zip -d $ANDROID_HOME
+          rm -rf $ANDROID_HOME/cmdline-tools/latest
           mkdir -p $ANDROID_HOME/cmdline-tools/latest
-          mv $ANDROID_HOME/cmdline-tools/bin $ANDROID_HOME/cmdline-tools/lib $ANDROID_HOME/cmdline-tools/source.properties $ANDROID_HOME/cmdline-tools/latest
+          mv $ANDROID_HOME/cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest/
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           sdkmanager --install "platforms;android-33" "build-tools;33.0.0" "platform-tools" "extras;android;m2repository" "extras;google;m2repository"
           yes | sdkmanager --licenses
