@@ -21,10 +21,9 @@ jobs:
           cache: 'gradle'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          sdk-version: 33
-          build-tools-version: 33.0.0
+        run: |
+          sdkmanager --install "platforms;android-33" "build-tools;33.0.0" "platform-tools" "extras;android;m2repository" "extras;google;m2repository"
+          yes | sdkmanager --licenses
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
